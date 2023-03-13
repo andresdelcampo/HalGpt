@@ -1,0 +1,103 @@
+﻿<Window x:Class="HalGpt.HAL_UI"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:self="clr-namespace:HalGpt"
+    Title="HAL GPT" Height="200" Width="1000" HorizontalAlignment="Left"
+    Top ="{Binding Source={x:Static self:Properties.Settings.Default}, Path=WindowTop, Mode=TwoWay}"
+    Left ="{Binding Source={x:Static self:Properties.Settings.Default}, Path=WindowLeft, Mode=TwoWay}"
+    ResizeMode="NoResize" WindowStyle="None" AllowsTransparency="True" ShowInTaskbar="False" Icon="Properties\hal_small.png" 
+    Background="Transparent" Foreground="Transparent" 
+    Activated="Window_Activated" Closing="Window_Closing" >
+	<Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Name="Speech" Header="Speech" IsCheckable="True" IsChecked="{Binding Source={x:Static self:Properties.Settings.Default}, Path=SpeechEnabled, Mode=TwoWay}" Checked="Speech_Checked" Unchecked="Speech_Unchecked"></MenuItem>
+            <Separator></Separator>
+            <MenuItem Name="Exit" Header="Exit" Click="Exit_Click"></MenuItem>
+        </ContextMenu>
+    </Window.ContextMenu>
+    <Window.Resources>
+        <Storyboard x:Key="OpenAnim">
+			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="stackPanel" Storyboard.TargetProperty="(FrameworkElement.Width)">
+				<SplineDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="800"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(FrameworkElement.Width)">
+				<SplineDoubleKeyFrame KeyTime="00:00:00" Value="100"/>
+				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="1000"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+		<Storyboard x:Key="CloseAnim">
+			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(FrameworkElement.Width)">
+				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="200"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="stackPanel" Storyboard.TargetProperty="(FrameworkElement.Width)">
+				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+	</Window.Resources>
+	<Window.Triggers>
+		<EventTrigger RoutedEvent="Keyboard.GotKeyboardFocus">
+			<BeginStoryboard Storyboard="{StaticResource OpenAnim}" x:Name="OpenAnim_BeginStoryboard1"/>
+		</EventTrigger>
+		<EventTrigger RoutedEvent="Keyboard.LostKeyboardFocus">
+			<BeginStoryboard Storyboard="{StaticResource CloseAnim}" x:Name="CloseAnim_BeginStoryboard"/>
+		</EventTrigger>
+	</Window.Triggers>
+    <Grid Background="Transparent" x:Name="grid" HorizontalAlignment="Left">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="800" />
+        </Grid.ColumnDefinitions>
+        <Rectangle Grid.Column="0" Grid.ColumnSpan="2" StrokeThickness="3" RadiusX="90" RadiusY="90" Width="1000" x:Name="rectangle" HorizontalAlignment="Left" >
+        	<Rectangle.Stroke>
+        		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+        			<GradientStop Color="#FF303030" Offset="1"/>
+        			<GradientStop Color="#FFA0A0A0" Offset="0"/>
+        		</LinearGradientBrush>
+        	</Rectangle.Stroke>
+        	<Rectangle.Fill>
+        		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0" SpreadMethod="Pad">
+        			<GradientStop Color="#FF000000" Offset="1"/>
+        			<GradientStop Color="#FFDFDFDF" Offset="0"/>
+        		</LinearGradientBrush>
+        	</Rectangle.Fill>
+        </Rectangle>
+        <Image Grid.Column="0" Name="imageHal" Stretch="Fill" Width="148" Height="148" Source="Properties\hal_small.png" MouseLeftButtonDown="imageHal_MouseLeftButtonDown" />
+        <StackPanel Grid.Column="1" Width="800" Orientation="Vertical" x:Name="stackPanel" HorizontalAlignment="Left" Background="{x:Null}">
+            <Border Margin="0,30,50,0" BorderThickness="2,2,2,2" CornerRadius="0,7,0,0" Background="{x:Null}" >
+            	<Border.BorderBrush>
+            		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            			<GradientStop Color="#FF303030" Offset="0"/>
+            			<GradientStop Color="#FF9F9F9F" Offset="1"/>
+            		</LinearGradientBrush>
+            	</Border.BorderBrush>
+	            <ScrollViewer Name="scrollConversation" VerticalScrollBarVisibility="Auto" Height="100">
+					<TextBox Name="txtChat" IsReadOnly="True" Height="Auto" MaxHeight="4000" Width="750" Foreground="#FFFFAF27" Background="#FF5F5F5F" Padding="3,0,0,0" Text="Text" FontFamily="Segoe UI" FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Left">
+						<!--<TextBox.Background>
+							<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+								<GradientStop Color="#FF202020" Offset="0"/>
+								<GradientStop Color="#FF7F7F7F" Offset="1"/>
+							</LinearGradientBrush>
+						</TextBox.Background>-->
+					</TextBox>
+		        </ScrollViewer>
+            </Border>
+            <Border Margin="0,0,50,0" BorderThickness="2,2,2,2" CornerRadius="0,0,7,0" >
+            	<Border.BorderBrush>
+            		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            			<GradientStop Color="#FF7F7F7F" Offset="0"/>
+            			<GradientStop Color="#FFAFAFAF" Offset="1"/>
+            		</LinearGradientBrush>
+            	</Border.BorderBrush>
+	            <TextBox Name="txtSay" Height="40" Width="750" Foreground="#FFFFFFFF" Background="#FF202020" FontFamily="Segoe UI" FontSize="14" Text="Test" KeyUp="TextBox_KeyUp" IsReadOnly="False" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" MaxLength="2048">
+	            	<!--<TextBox.Background>
+	            		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+	            			<GradientStop Color="#FF7F7F7F" Offset="0"/>
+	            			<GradientStop Color="#FFA0A0A0" Offset="1"/>
+	            		</LinearGradientBrush>
+	            	</TextBox.Background>-->
+	            </TextBox>
+			</Border>
+        </StackPanel>
+    </Grid>
+</Window>
