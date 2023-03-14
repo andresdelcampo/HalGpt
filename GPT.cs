@@ -16,10 +16,10 @@ namespace HalGpt
             _chat.AppendSystemMessage(systemMessage);
         }
         
-        public string ReplyTo(string input)
+        public async Task<string> ReplyTo(string input)
         {
             _chat.AppendUserInput(input);
-            string response = Task.Run(async () => await _chat.GetResponseFromChatbot()).Result;
+            var response = await _chat.GetResponseFromChatbot();
             return response;
         }
 
