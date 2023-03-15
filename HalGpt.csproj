@@ -91,6 +91,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="ConversationHistory.xaml" />
     <Page Include="HalGPT.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -100,6 +101,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Conversation.cs" />
+    <Compile Include="ConversationHistory.xaml.cs">
+      <DependentUpon>ConversationHistory.xaml</DependentUpon>
     </Compile>
     <Compile Include="HalGPT.xaml.cs">
       <DependentUpon>HalGPT.xaml</DependentUpon>

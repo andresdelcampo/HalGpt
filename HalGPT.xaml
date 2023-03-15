@@ -12,6 +12,8 @@
         <ContextMenu>
             <MenuItem Name="Speech" Header="Speech" IsCheckable="True" IsChecked="{Binding Source={x:Static self:Properties.Settings.Default}, Path=SpeechEnabled, Mode=TwoWay}" Checked="Speech_Checked" Unchecked="Speech_Unchecked"></MenuItem>
             <Separator></Separator>
+	        <MenuItem Name="Conversation" Header="Conversation" Click="Conversation_Click"></MenuItem>
+	        <Separator></Separator>
             <MenuItem Name="Exit" Header="Exit" Click="Exit_Click"></MenuItem>
         </ContextMenu>
     </Window.ContextMenu>
@@ -21,13 +23,13 @@
 				<SplineDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
 				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="800"/>
 			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(FrameworkElement.Width)">
+			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="Rectangle" Storyboard.TargetProperty="(FrameworkElement.Width)">
 				<SplineDoubleKeyFrame KeyTime="00:00:00" Value="100"/>
 				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="1000"/>
 			</DoubleAnimationUsingKeyFrames>
 		</Storyboard>
 		<Storyboard x:Key="CloseAnim">
-			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(FrameworkElement.Width)">
+			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="Rectangle" Storyboard.TargetProperty="(FrameworkElement.Width)">
 				<SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="200"/>
 			</DoubleAnimationUsingKeyFrames>
 			<DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="stackPanel" Storyboard.TargetProperty="(FrameworkElement.Width)">
@@ -37,18 +39,18 @@
 	</Window.Resources>
 	<Window.Triggers>
 		<EventTrigger RoutedEvent="Keyboard.GotKeyboardFocus">
-			<BeginStoryboard Storyboard="{StaticResource OpenAnim}" x:Name="OpenAnim_BeginStoryboard1"/>
+			<BeginStoryboard Storyboard="{StaticResource OpenAnim}" x:Name="OpenAnimBeginStoryboard1"/>
 		</EventTrigger>
 		<EventTrigger RoutedEvent="Keyboard.LostKeyboardFocus">
-			<BeginStoryboard Storyboard="{StaticResource CloseAnim}" x:Name="CloseAnim_BeginStoryboard"/>
+			<BeginStoryboard Storyboard="{StaticResource CloseAnim}" x:Name="CloseAnimBeginStoryboard"/>
 		</EventTrigger>
 	</Window.Triggers>
-    <Grid Background="Transparent" x:Name="grid" HorizontalAlignment="Left">
+    <Grid Background="Transparent" x:Name="Grid" HorizontalAlignment="Left">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />
             <ColumnDefinition Width="800" />
         </Grid.ColumnDefinitions>
-        <Rectangle Grid.Column="0" Grid.ColumnSpan="2" StrokeThickness="3" RadiusX="90" RadiusY="90" Width="1000" x:Name="rectangle" HorizontalAlignment="Left" >
+        <Rectangle Grid.Column="0" Grid.ColumnSpan="2" StrokeThickness="3" RadiusX="90" RadiusY="90" Width="1000" x:Name="Rectangle" HorizontalAlignment="Left" >
         	<Rectangle.Stroke>
         		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
         			<GradientStop Color="#FF303030" Offset="1"/>
@@ -62,7 +64,7 @@
         		</LinearGradientBrush>
         	</Rectangle.Fill>
         </Rectangle>
-        <Image Grid.Column="0" Name="imageHal" Stretch="Fill" Width="148" Height="148" Source="Properties\hal_small.png" MouseLeftButtonDown="imageHal_MouseLeftButtonDown" />
+        <Image Grid.Column="0" Name="ImageHal" Stretch="Fill" Width="148" Height="148" Source="Properties\hal_small.png" MouseLeftButtonDown="imageHal_MouseLeftButtonDown" />
         <StackPanel Grid.Column="1" Width="800" Orientation="Vertical" x:Name="stackPanel" HorizontalAlignment="Left" Background="{x:Null}">
             <Border Margin="0,30,50,0" BorderThickness="2,2,2,2" CornerRadius="0,7,0,0" Background="{x:Null}" >
             	<Border.BorderBrush>
@@ -71,14 +73,8 @@
             			<GradientStop Color="#FF9F9F9F" Offset="1"/>
             		</LinearGradientBrush>
             	</Border.BorderBrush>
-	            <ScrollViewer Name="scrollConversation" VerticalScrollBarVisibility="Auto" Height="100">
-					<TextBox Name="txtChat" IsReadOnly="True" Height="Auto" MaxHeight="4000" Width="750" Foreground="#FFFFAF27" Background="#FF5F5F5F" Padding="3,0,0,0" Text="Text" FontFamily="Segoe UI" FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Left">
-						<!--<TextBox.Background>
-							<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-								<GradientStop Color="#FF202020" Offset="0"/>
-								<GradientStop Color="#FF7F7F7F" Offset="1"/>
-							</LinearGradientBrush>
-						</TextBox.Background>-->
+	            <ScrollViewer Name="ScrollConversation" VerticalScrollBarVisibility="Auto" Height="100">
+					<TextBox Name="TxtChat" IsReadOnly="True" Height="Auto" MaxHeight="4000" Width="750" Foreground="#FFFFAF27" Background="#FF5F5F5F" Padding="3,0,0,0" Text="Text" FontFamily="Segoe UI" FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Left" PreviewMouseDoubleClick="TxtChat_OnPreviewMouseDoubleClick">
 					</TextBox>
 		        </ScrollViewer>
             </Border>
@@ -89,13 +85,7 @@
             			<GradientStop Color="#FFAFAFAF" Offset="1"/>
             		</LinearGradientBrush>
             	</Border.BorderBrush>
-	            <TextBox Name="txtSay" Height="40" Width="750" Foreground="#FFFFFFFF" Background="#FF202020" FontFamily="Segoe UI" FontSize="14" Text="Test" KeyUp="TextBox_KeyUp_Async" IsReadOnly="False" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" MaxLength="2048">
-	            	<!--<TextBox.Background>
-	            		<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-	            			<GradientStop Color="#FF7F7F7F" Offset="0"/>
-	            			<GradientStop Color="#FFA0A0A0" Offset="1"/>
-	            		</LinearGradientBrush>
-	            	</TextBox.Background>-->
+	            <TextBox Name="TxtSay" Height="40" Width="750" Foreground="#FFFFFFFF" Background="#FF202020" FontFamily="Segoe UI" FontSize="14" Text="Test" KeyUp="TextBox_KeyUp_Async" IsReadOnly="False" HorizontalAlignment="Left" TextWrapping="WrapWithOverflow" MaxLength="2048">
 	            </TextBox>
 			</Border>
         </StackPanel>

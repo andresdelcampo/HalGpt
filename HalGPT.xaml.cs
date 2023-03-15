@@ -18,7 +18,7 @@ namespace HalGpt
         private const double VertBorderMargin = 50;
         private string _welcomeSpeech;
 
-        private readonly Gpt _brain;
+        private readonly Conversation _conversation;
         private SpeechSynthesizer _synth;
         bool _firstTimeOpened = true;
 
@@ -36,12 +36,13 @@ namespace HalGpt
 
             var appSettings = ConfigurationManager.AppSettings;
             string apiKey = appSettings["ApiKey"];
-            string systemMessage = appSettings["SystemMessage"] + $" Today is {DateTime.Now.ToLongDateString()}";
-            _brain = new Gpt(apiKey, systemMessage);
-
-            txtChat.Text = WaitingForApi;
-            txtSay.Text = "";
-            txtSay.Focus();
+            string longDateTimeString = DateTime.Now.ToString("dddd, MMMM dd, yyyy h:mm tt");
+            string systemMessage = appSettings["SystemMessage"] + $" Today is {longDateTimeString}";
+            _conversation = new Conversation(apiKey, systemMessage);
+            
+            TxtChat.Text = WaitingForApi;
+            TxtSay.Text = "";
+            TxtSay.Focus();
 
             if (SpeechEnabled())
             {
@@ -63,23 +64,32 @@ namespace HalGpt
         //**********************************************************************************************
         private async void Window_Activated_Async(object sender, EventArgs e)
         {
-            var appSettings = ConfigurationManager.AppSettings;
-
-            string welcomeRequest = appSettings["WelcomeRequest"];
-            if (string.IsNullOrEmpty(welcomeRequest))
-                _welcomeSpeech = "";
-            else
+            if (_firstTimeOpened)
             {
-                string answer = await _brain.ReplyTo(welcomeRequest);
-                _welcomeSpeech = answer.TrimStart('\n', '\r');
-            }
-
-            txtChat.Text = _welcomeSpeech;
-            
-            if (SpeechEnabled() &&  _firstTimeOpened && !string.IsNullOrEmpty(_welcomeSpeech))
-            {
-                _synth.SpeakAsync(_welcomeSpeech);
                 _firstTimeOpened = false;
+
+                var appSettings = ConfigurationManager.AppSettings;
+                string welcomeRequest = appSettings["WelcomeRequest"];
+                if (string.IsNullOrEmpty(welcomeRequest))
+                    _welcomeSpeech = "";
+                else
+                {
+                    try
+                    {
+                        string answer = await _conversation.ReplyTo(welcomeRequest, false);
+                        _welcomeSpeech = answer.TrimStart('\n', '\r');
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Error using OpenAI API key. Remember to set the API key in the config file.");
+                        throw;
+                    }
+                }
+
+                TxtChat.Text = _welcomeSpeech;
+            
+                if (SpeechEnabled() && !string.IsNullOrEmpty(_welcomeSpeech))
+                    _synth.SpeakAsync(_welcomeSpeech);
             }
         }
 
@@ -92,30 +102,39 @@ namespace HalGpt
             if (e.Key == Key.Enter)
             {
                 // We will process meaningful sentences
-                string inputText = txtSay.Text.Trim();
+                string inputText = TxtSay.Text.Trim();
                 if (inputText != "")
                 {
                     // Thinking
-                    txtChat.Text = WaitingForApi;
+                    TxtChat.Text = WaitingForApi;
 
                     // Getting an answer
-                    string answer = await _brain.ReplyTo(inputText);
-                    answer = answer.TrimStart('\n', '\r');
+                    string answer;
+                    try
+                    {
+                        answer = await _conversation.ReplyTo(inputText);
+                        answer = answer.TrimStart('\n', '\r');
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Error using OpenAI API key. Remember to set the API key in the config file.");
+                        throw;
+                    }
 
                     if (SpeechEnabled()) _synth.SpeakAsync(answer);
 
                     // Answering one character at a time
-                    txtChat.Text = ""; 
+                    TxtChat.Text = ""; 
                     for (int i = 0; i < answer.Length; i++)
                     {
                         // Check if we have scrolled all the way to the bottom -to keep scrolling while answering
-                        bool scrollToBottom = (scrollConversation.VerticalOffset + scrollConversation.ViewportHeight) >= scrollConversation.ExtentHeight;
-                        txtChat.Text += answer.Substring(i, 1);
-                        if (scrollToBottom) scrollConversation.ScrollToBottom();
+                        bool scrollToBottom = (ScrollConversation.VerticalOffset + ScrollConversation.ViewportHeight) >= ScrollConversation.ExtentHeight;
+                        TxtChat.Text += answer.Substring(i, 1);
+                        if (scrollToBottom) ScrollConversation.ScrollToBottom();
                         await Task.Delay(TextDelay);
                     }
 
-                    txtSay.Text = "";
+                    TxtSay.Text = "";
                 }
             }
         }
@@ -135,6 +154,21 @@ namespace HalGpt
         {
             DragMove();         // Allows moving the window
         }
+        
+        //**********************************************************************************************
+        // TxtChat_OnPreviewMouseDoubleClick
+        //**********************************************************************************************
+        private void TxtChat_OnPreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            OpenConversationWindow();
+            e.Handled = true;
+        }
+
+        private void OpenConversationWindow()
+        {
+            var conversation = new ConversationHistory(_conversation.FullConversation);
+            conversation.ShowDialog();
+        }
 
         #region Context menu
 
@@ -153,6 +187,14 @@ namespace HalGpt
         {
             _synth = null;
         }
+        
+        //**********************************************************************************************
+        // Conversation_Click
+        //**********************************************************************************************
+        private void Conversation_Click(object sender, RoutedEventArgs e)
+        {
+            OpenConversationWindow();
+        }
 
         //**********************************************************************************************
         // CloseAnimationAndExit
@@ -163,6 +205,5 @@ namespace HalGpt
         }
         
         #endregion
-
     }
 }

@@ -1,13 +1,12 @@
 ﻿using System.Threading.Tasks;
 using OpenAI_API;
-using OpenAI_API.Chat;
 
 namespace HalGpt
 {
     public class Gpt
     {
         private readonly OpenAIAPI _api;
-        private readonly Conversation _chat;
+        private readonly OpenAI_API.Chat.Conversation _chat;
 
         public Gpt(string apiKey, string systemMessage)
         {
@@ -22,6 +21,5 @@ namespace HalGpt
             var response = await _chat.GetResponseFromChatbot();
             return response;
         }
-
     }
 }
