@@ -34,7 +34,7 @@ namespace HalGpt
         {
             return conversation?.Replace(Environment.NewLine, "<br>")
                 .Replace("\n", "<br>")
-                .Replace("<USER>", "<b>")
+                .Replace("<USER>", "<b>&gt; ")
                 .Replace("</USER>", "</b>")
                 .Replace("<AI>", "")
                 .Replace("</AI>", "");

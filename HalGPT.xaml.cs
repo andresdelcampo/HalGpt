@@ -124,7 +124,8 @@ namespace HalGpt
                     if (SpeechEnabled()) _synth.SpeakAsync(answer);
 
                     // Answering one character at a time
-                    TxtChat.Text = ""; 
+                    TxtChat.Text = "> " + TxtSay.Text + Environment.NewLine + Environment.NewLine; 
+                    TxtSay.Text = "";
                     for (int i = 0; i < answer.Length; i++)
                     {
                         // Check if we have scrolled all the way to the bottom -to keep scrolling while answering
@@ -133,8 +134,6 @@ namespace HalGpt
                         if (scrollToBottom) ScrollConversation.ScrollToBottom();
                         await Task.Delay(TextDelay);
                     }
-
-                    TxtSay.Text = "";
                 }
             }
         }
