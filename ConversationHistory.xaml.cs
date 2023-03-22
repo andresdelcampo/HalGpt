@@ -10,7 +10,7 @@ namespace HalGpt
             InitializeComponent();
             LoadHtmlContent(conversation);
         }
-        
+
         private void LoadHtmlContent(string conversation)
         {
             string htmlString = @"
@@ -19,7 +19,7 @@ namespace HalGpt
                 <head>
                     <meta charset=""UTF-8"">
                     <style>
-                		body { font-family: Segoe UI; font-size: 24px; color:white; background-color: #202020}
+                		body { font-family: Segoe UI; font-size: 14px; color:white; background-color: #202020}
                     </style>
                 </head>
                 <body>
@@ -33,6 +33,7 @@ namespace HalGpt
         private static string FormatHtmlConversation(string conversation)
         {
             return conversation?.Replace(Environment.NewLine, "<br>")
+                .Replace("\n", "<br>")
                 .Replace("<USER>", "<b>")
                 .Replace("</USER>", "</b>")
                 .Replace("<AI>", "")
