@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Speech.Synthesis;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -18,8 +17,8 @@ namespace HalGpt
         private const double VertBorderMargin = 50;
         private string _welcomeSpeech;
 
+        private readonly Speech _speech = new();
         private readonly Conversation _conversation;
-        private SpeechSynthesizer _synth;
         bool _firstTimeOpened = true;
 
         //**********************************************************************************************
@@ -35,28 +34,17 @@ namespace HalGpt
                 Left = HorizBorderMargin;
 
             var appSettings = ConfigurationManager.AppSettings;
-            string apiKey = appSettings["ApiKey"];
+            string apiKeyOpenAi = appSettings["ApiKeyOpenAI"];
             string longDateTimeString = DateTime.Now.ToString("dddd, MMMM dd, yyyy h:mm tt");
             string systemMessage = appSettings["SystemMessage"] + $" Today is {longDateTimeString}";
-            _conversation = new Conversation(apiKey, systemMessage);
+            _conversation = new Conversation(apiKeyOpenAi, systemMessage);
             
             TxtChat.Text = WaitingForApi;
             TxtSay.Text = "";
             TxtSay.Focus();
 
             if (SpeechEnabled())
-            {
-                _synth = new SpeechSynthesizer();
-                _synth.Rate = 2;
-            }
-        }
-
-        //**********************************************************************************************
-        // SpeechEnabled
-        //**********************************************************************************************
-        private static bool SpeechEnabled()
-        {
-            return (bool)Properties.Settings.Default.PropertyValues["SpeechEnabled"].PropertyValue;
+                _speech.InitSpeech();
         }
 
         //**********************************************************************************************
@@ -86,10 +74,9 @@ namespace HalGpt
                     }
                 }
 
-                TxtChat.Text = _welcomeSpeech;
-            
-                if (SpeechEnabled() && !string.IsNullOrEmpty(_welcomeSpeech))
-                    _synth.SpeakAsync(_welcomeSpeech);
+                TxtChat.Text = "";
+                _speech.Speak(_welcomeSpeech);
+                _ = ReplySlowly(_welcomeSpeech);
             }
         }
 
@@ -121,20 +108,27 @@ namespace HalGpt
                         throw;
                     }
 
-                    if (SpeechEnabled()) _synth.SpeakAsync(answer);
+                    _speech.Speak(answer);
 
-                    // Answering one character at a time
-                    TxtChat.Text = "> " + TxtSay.Text + Environment.NewLine + Environment.NewLine; 
+                    TxtChat.Text = "> " + TxtSay.Text + Environment.NewLine + Environment.NewLine;
                     TxtSay.Text = "";
-                    for (int i = 0; i < answer.Length; i++)
-                    {
-                        // Check if we have scrolled all the way to the bottom -to keep scrolling while answering
-                        bool scrollToBottom = (ScrollConversation.VerticalOffset + ScrollConversation.ViewportHeight) >= ScrollConversation.ExtentHeight;
-                        TxtChat.Text += answer.Substring(i, 1);
-                        if (scrollToBottom) ScrollConversation.ScrollToBottom();
-                        await Task.Delay(TextDelay);
-                    }
+
+                    await ReplySlowly(answer);
                 }
+            }
+        }
+
+        private async Task ReplySlowly(string answer)
+        {
+            // Answering one character at a time
+            for (int i = 0; i < answer.Length; i++)
+            {
+                // Check if we have scrolled all the way to the bottom -to keep scrolling while answering
+                bool scrollToBottom = (ScrollConversation.VerticalOffset + ScrollConversation.ViewportHeight) >=
+                                      ScrollConversation.ExtentHeight;
+                TxtChat.Text += answer.Substring(i, 1);
+                if (scrollToBottom) ScrollConversation.ScrollToBottom();
+                await Task.Delay(TextDelay);
             }
         }
 
@@ -176,11 +170,19 @@ namespace HalGpt
         #region Context menu
 
         //**********************************************************************************************
+        // SpeechEnabled
+        //**********************************************************************************************
+        private static bool SpeechEnabled()
+        {
+            return (bool)Properties.Settings.Default.PropertyValues["SpeechEnabled"].PropertyValue;
+        }
+        
+        //**********************************************************************************************
         // Speech_Checked
         //**********************************************************************************************
         private void Speech_Checked(object sender, RoutedEventArgs e)
         {
-            _synth = new SpeechSynthesizer();
+            _speech.InitSpeech();
         }
 
         //**********************************************************************************************
@@ -188,7 +190,7 @@ namespace HalGpt
         //**********************************************************************************************
         private void Speech_Unchecked(object sender, RoutedEventArgs e)
         {
-            _synth = null;
+            _speech.Dispose();
         }
         
         //**********************************************************************************************
