@@ -144,6 +144,10 @@ namespace HalGpt
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Properties.Settings.Default.Save();
+            
+            var appSettings = ConfigurationManager.AppSettings;
+            string savePath = appSettings["SaveConversationsPath"];
+            _conversation.SaveAsHtml(savePath);
         }
 
         //**********************************************************************************************
@@ -165,7 +169,7 @@ namespace HalGpt
 
         private void OpenConversationWindow()
         {
-            var conversation = new ConversationHistory(_conversation.FullConversation);
+            var conversation = new ConversationHistory(_conversation);
             conversation.ShowDialog();
         }
 

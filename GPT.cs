@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using OpenAI_API;
+using OpenAI_API.Models;
 
 namespace HalGpt
 {
@@ -20,6 +21,12 @@ namespace HalGpt
             _chat.AppendUserInput(input);
             var response = await _chat.GetResponseFromChatbot();
             return response;
+        }
+
+        public async Task<string> IsolatedCompletion(string input)
+        {
+            var response = await _api.Completions.CreateCompletionAsync(input, model: Model.DavinciText, temperature: 0.1);
+            return response.ToString();
         }
     }
 }
