@@ -9,8 +9,23 @@
         Top ="{Binding Source={x:Static self:Properties.Settings.Default}, Path=ConversationWindowTop, Mode=TwoWay}"
         Left ="{Binding Source={x:Static self:Properties.Settings.Default}, Path=ConversationWindowLeft, Mode=TwoWay}">
     <Grid>
-        <Border Background="#FFA0A0A0" BorderBrush="#FF303030" BorderThickness="2" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/> <!-- This row takes up the remaining space -->
+            <RowDefinition Height="Auto"/> <!-- This row takes up the required height for the TextBox -->
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#FFA0A0A0" BorderBrush="#FF303030" BorderThickness="2">
             <WebBrowser x:Name="HtmlContentWebBrowser" Margin="5"/>
+        </Border>
+
+        <Border Grid.Row="1" BorderThickness="2,2,2,2" CornerRadius="0,0,7,0" >
+            <Border.BorderBrush>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF7F7F7F" Offset="0"/>
+                    <GradientStop Color="#FFAFAFAF" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+            <TextBox x:Name="TxtSay" Margin="0" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Foreground="#FFFFFFFF" Background="#FF202020" FontFamily="Segoe UI" FontSize="14" Text="" KeyUp="TxtSay_OnKeyUp" IsReadOnly="False" TextWrapping="WrapWithOverflow" MaxLength="2048" />
         </Border>
     </Grid>
 </Window>

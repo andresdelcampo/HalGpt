@@ -126,6 +126,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ConversationOutput.cs" />
     <Compile Include="Speech.cs" />
     <Page Include="ConversationHistory.xaml" />
     <Page Include="HalGPT.xaml">

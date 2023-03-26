@@ -9,15 +9,33 @@ namespace HalGpt
     {
         private readonly Gpt _brain;
 
-        private string Title { get; set; }
-        private string FullConversation { get; set; }
+        public string Title { get; private set; }
+        public string FullConversation { get; private set; }
 
         public Conversation(string apiKey, string systemMessage)
         {
             _brain = new Gpt(apiKey, systemMessage);
         }
         
-        public async Task<string> ReplyTo(string input, bool logInput = true)
+        public async Task<string> ReplyToInput(string inputText, bool logInput = true)
+        {
+            // Getting an answer
+            string answer;
+            try
+            {
+                answer = await ReplyTo(inputText, logInput);
+                answer = answer.TrimStart('\n', '\r');
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error using OpenAI API key. Remember to set the API key in the config file.");
+                throw;
+            }
+
+            return answer;
+        }
+
+        private async Task<string> ReplyTo(string input, bool logInput)
         {
             if (logInput) FullConversation += "<USER>" + input + "</USER>" + Environment.NewLine;
             var response = await _brain.ReplyTo(input);
@@ -25,11 +43,11 @@ namespace HalGpt
             if (Title == null && logInput) SetTitle();
             return response;
         }
-        
-        public async void SetTitle()
+
+        private async void SetTitle()
         {
             var response = await _brain.IsolatedCompletion("Summarize the following conversation into a short filename of max 64 chars and without extension or dot: " + FullConversation);
-            Title = response;
+            Title = response.TrimStart('\n', '\r');
         }
         
         private int ConversationFontSize(bool forExport)

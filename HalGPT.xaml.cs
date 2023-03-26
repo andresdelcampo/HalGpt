@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -14,12 +13,11 @@ namespace HalGpt
         private const string WaitingForApi = "Just a moment...";
         private const double HorizBorderMargin = 25;
         private const double VertBorderMargin = 50;
-        private const int TextDelay = 50;
-        private int _currentTextDelay = 50;
         private string _welcomeSpeech;
 
         private readonly Speech _speech = new();
         private readonly Conversation _conversation;
+        private readonly ConversationOutput _output;
         bool _firstTimeOpened = true;
 
         //**********************************************************************************************
@@ -39,7 +37,8 @@ namespace HalGpt
             string longDateTimeString = DateTime.Now.ToString("dddd, MMMM dd, yyyy h:mm tt");
             string systemMessage = appSettings["SystemMessage"] + $" Today is {longDateTimeString}";
             _conversation = new Conversation(apiKeyOpenAi, systemMessage);
-            
+            _output = new ConversationOutput();
+                
             TxtChat.Text = WaitingForApi;
             TxtSay.Text = "";
             TxtSay.Focus();
@@ -62,22 +61,11 @@ namespace HalGpt
                 if (string.IsNullOrEmpty(welcomeRequest))
                     _welcomeSpeech = "";
                 else
-                {
-                    try
-                    {
-                        string answer = await _conversation.ReplyTo(welcomeRequest, false);
-                        _welcomeSpeech = answer.TrimStart('\n', '\r');
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("Error using OpenAI API key. Remember to set the API key in the config file.");
-                        throw;
-                    }
-                }
+                    _welcomeSpeech = await _conversation.ReplyToInput(welcomeRequest, false);
 
                 TxtChat.Text = "";
                 _speech.Speak(_welcomeSpeech);
-                _ = ReplySlowly(_welcomeSpeech);
+                _ = _output.ReplySlowly(_welcomeSpeech, TxtChat, ScrollConversation);
             }
         }
 
@@ -86,7 +74,7 @@ namespace HalGpt
         //**********************************************************************************************
         private async void TextBox_KeyUp_Async(object sender, KeyEventArgs e)
         {
-            SpeedUpPendingConversation();
+            _output.SpeedUpPendingConversation();
 
             // Process the sentence introduced by the user
             if (e.Key == Key.Enter)
@@ -98,53 +86,14 @@ namespace HalGpt
                     // Thinking
                     TxtChat.Text = WaitingForApi;
 
-                    // Getting an answer
-                    string answer;
-                    try
-                    {
-                        answer = await _conversation.ReplyTo(inputText);
-                        answer = answer.TrimStart('\n', '\r');
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("Error using OpenAI API key. Remember to set the API key in the config file.");
-                        throw;
-                    }
-
+                    var answer = await _conversation.ReplyToInput(inputText);
                     _speech.Speak(answer);
 
                     TxtChat.Text = "> " + TxtSay.Text + Environment.NewLine + Environment.NewLine;
                     TxtSay.Text = "";
 
-                    await ReplySlowly(answer);
+                    await _output.ReplySlowly(answer, TxtChat, ScrollConversation);
                 }
-            }
-        }
-
-        //**********************************************************************************************
-        // SpeedUpPendingConversation
-        //**********************************************************************************************
-        private void SpeedUpPendingConversation()
-        {
-            // Make sure any previous answer goes instantly to prevent parallel answers 
-            _currentTextDelay = 0;
-        }
-
-        //**********************************************************************************************
-        // ReplySlowly
-        //**********************************************************************************************
-        private async Task ReplySlowly(string answer)
-        {
-            // Answering one character at a time
-            _currentTextDelay = TextDelay;
-            for (int i = 0; i < answer.Length; i++)
-            {
-                // Check if we have scrolled all the way to the bottom -to keep scrolling while answering
-                bool scrollToBottom = (ScrollConversation.VerticalOffset + ScrollConversation.ViewportHeight) >=
-                                      ScrollConversation.ExtentHeight;
-                TxtChat.Text += answer.Substring(i, 1);
-                if (scrollToBottom) ScrollConversation.ScrollToBottom();
-                await Task.Delay(_currentTextDelay);
             }
         }
 
@@ -182,10 +131,14 @@ namespace HalGpt
         //**********************************************************************************************
         private void OpenConversationWindow()
         {
-            SpeedUpPendingConversation();
+            _output.SpeedUpPendingConversation();
             
-            var conversation = new ConversationHistory(_conversation);
+            var conversation = new ConversationHistory(_conversation, _speech);
             conversation.ShowDialog();
+            
+            TxtChat.Text = "";
+            TxtSay.Text = "";
+            TxtSay.Focus();
         }
 
         #region Context menu
