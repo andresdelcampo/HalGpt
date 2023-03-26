@@ -12,9 +12,10 @@ namespace HalGpt
     public partial class HalUi
     {
         private const string WaitingForApi = "Just a moment...";
-        private const int TextDelay = 50;
         private const double HorizBorderMargin = 25;
         private const double VertBorderMargin = 50;
+        private const int TextDelay = 50;
+        private int _currentTextDelay = 50;
         private string _welcomeSpeech;
 
         private readonly Speech _speech = new();
@@ -85,6 +86,8 @@ namespace HalGpt
         //**********************************************************************************************
         private async void TextBox_KeyUp_Async(object sender, KeyEventArgs e)
         {
+            SpeedUpPendingConversation();
+
             // Process the sentence introduced by the user
             if (e.Key == Key.Enter)
             {
@@ -118,9 +121,22 @@ namespace HalGpt
             }
         }
 
+        //**********************************************************************************************
+        // SpeedUpPendingConversation
+        //**********************************************************************************************
+        private void SpeedUpPendingConversation()
+        {
+            // Make sure any previous answer goes instantly to prevent parallel answers 
+            _currentTextDelay = 0;
+        }
+
+        //**********************************************************************************************
+        // ReplySlowly
+        //**********************************************************************************************
         private async Task ReplySlowly(string answer)
         {
             // Answering one character at a time
+            _currentTextDelay = TextDelay;
             for (int i = 0; i < answer.Length; i++)
             {
                 // Check if we have scrolled all the way to the bottom -to keep scrolling while answering
@@ -128,7 +144,7 @@ namespace HalGpt
                                       ScrollConversation.ExtentHeight;
                 TxtChat.Text += answer.Substring(i, 1);
                 if (scrollToBottom) ScrollConversation.ScrollToBottom();
-                await Task.Delay(TextDelay);
+                await Task.Delay(_currentTextDelay);
             }
         }
 
@@ -161,8 +177,13 @@ namespace HalGpt
             e.Handled = true;
         }
 
+        //**********************************************************************************************
+        // OpenConversationWindow
+        //**********************************************************************************************
         private void OpenConversationWindow()
         {
+            SpeedUpPendingConversation();
+            
             var conversation = new ConversationHistory(_conversation);
             conversation.ShowDialog();
         }
