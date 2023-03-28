@@ -1,5 +1,5 @@
 # HalGpt
-**HalGPT** is A ChatGPT (GPT 3.5 Turbo) Windows desktop UI (tested in Windows 10 and 11) with speech support and automatic conversation saving on closing. 
+**HalGPT** is a ChatGPT (GPT 3.5 Turbo) Windows desktop UI (tested in Windows 10 and 11) with speech support and automatic conversation saving on closing. 
 Preprogram it to know you and define its personality!
 Requires an OpenAI API key and an optional ElevenLabs API key for realistic speech.
 No developer knowledge required -just editing a config file.
