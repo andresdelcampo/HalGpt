@@ -36,5 +36,8 @@ HalGPT is inspired by HAL 9000 from the novel and movie *2001: A Space Odyssey* 
 *HalGPT conversation window*
 
 # Privacy
-This application does not send in any way neither the API keys nor the conversations. 
+This application does **_not_** send in any way neither the API keys nor the conversations (except when calling the APIs themselves, of course). 
 Please review OpenAI and ElevenLabs privacy policies regarding their privacy in the usage of their APIs.
+
+# Feedback or contributions
+Feel free to open Issues or start conversations. I may continue this project depending on general interest.
